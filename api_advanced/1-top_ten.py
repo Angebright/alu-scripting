@@ -1,34 +1,29 @@
 #!/usr/bin/python3
-"""Fetches and prints top 10 hot post titles for a subreddit"""
-
+"""Script that fetch 10 hot post for a given subreddit."""
 import requests
-import sys
 
 
 def top_ten(subreddit):
-    """Print titles of the top 10 hot posts for a subreddit."""
-    url = "https://www.reddit.com/r/{}/hot.json?limit=10".format(subreddit)
-    headers = {'User-Agent': 'Python:subreddit.hot:v1.0 (by /u/yourusername)'}
+    """Return number of subscribers if @subreddit is valid subreddit.
+    if not return 0."""
+
+    if not subreddit:
+        print(None)
+        return
+
+    headers = {'User-Agent': 'MyAPI/0.0.1'}
+    subreddit_url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
+    response = requests.get(
+        subreddit_url, headers=headers, allow_redirects=False)
+
+    if response.status_code != 200:
+        print(None)
+        return
 
     try:
-        response = requests.get(url, headers=headers, allow_redirects=False)
-        if response.status_code != 200:
-            print(None)
-            return
-
-        posts = response.json().get('data', {}).get('children', [])
-        if not posts:
-            print(None)
-            return
-
-        for post in posts:
-            title = post.get('data', {}).get('title')
-            if title is not None:
-                print(title)
-    except Exception:
+        json_data = response.json()
+        children = json_data.get('data', {}).get('children', [])[:10]
+        for post in children:
+            print(post.get('data', {}).get('title'))
+    except (ValueError, KeyError):
         print(None)
-
-
-if __name__ == "__main__":
-    if len(sys.argv) >= 2:
-        top_ten(sys.argv[1])
