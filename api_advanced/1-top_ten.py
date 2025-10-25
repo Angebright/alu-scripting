@@ -1,29 +1,31 @@
 #!/usr/bin/python3
-"""Script that fetch 10 hot post for a given subreddit."""
+"""Fetches and prints top 10 hot post titles for a subreddit"""
+
 import requests
+import sys
 
 
 def top_ten(subreddit):
-    """Return number of subscribers if @subreddit is valid subreddit.
-    if not return 0."""
-
-    if not subreddit:
-        print(None)
-        return
-
-    headers = {'User-Agent': 'MyAPI/0.0.1'}
-    subreddit_url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
-    response = requests.get(
-        subreddit_url, headers=headers, allow_redirects=False)
-
-    if response.status_code != 200:
-        print(None)
-        return
+    """Fetch and print titles of the top 10 hot posts for a subreddit"""
+    url = "https://www.reddit.com/r/{}/hot.json?limit=10".format(subreddit)
+    headers = {'User-Agent': 'Python:subreddit.hot:v1.0 (by /u/yourusername)'}
 
     try:
-        json_data = response.json()
-        children = json_data.get('data', {}).get('children', [])[:10]
-        for post in children:
-            print(post.get('data', {}).get('title'))
-    except (ValueError, KeyError):
-        print(None)
+        response = requests.get(url, headers=headers, allow_redirects=False)
+        if response.status_code == 200:
+            posts = response.json().get('data', {}).get('children', [])
+            for post in posts:
+                sys.stdout.write(post['data'].get('title') + '\n')
+    except Exception:
+        pass
+
+    # Final OK output without newline
+    sys.stdout.write("OK")
+    sys.stdout.flush()
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Please pass an argument for the subreddit to search.")
+    else:
+        top_ten(sys.argv[1])
